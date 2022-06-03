@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "year_report"
+version = "0.1.0"
+description = "Reports grades for a given year of education."
+authors = ["Karlo Milicic <kabo.milicic@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+colorama = "^0.4.4"
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.960"
+pytest = "^7.1.2"
+yapf = "^0.32.0"
+flake8 = "^4.0.1"
+toml = "^0.10.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.yapf]
+based_on_style = "google"
+spaces_before_comment = 4
+split_before_logical_operator = true
+align_closing_bracket_with_visual_indent = true
+blank_line_before_nested_class_or_def = false
+column_limit = 140
