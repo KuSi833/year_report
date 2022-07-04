@@ -1,4 +1,5 @@
-from enum import Enum
+from enum import Enum, auto
+from operator import mod
 from typing import Any, List, Tuple
 from colorama import Fore, Back, Style
 
@@ -26,8 +27,21 @@ class Verbosity(Enum):
     PER_ACTIVITY: int = 3
 
 
+class SortType(Enum):
+    GRADE = auto
+
+
+class SortDIR(Enum):
+    ASC = auto
+    DESC = auto
+
+
 class Activity:
-    def __init__(self, name: str, pct: int, mark: float, certain: bool = True) -> None:
+    def __init__(self,
+                 name: str,
+                 pct: int,
+                 mark: float,
+                 certain: bool = True) -> None:
         self.name = name
         self.pct = pct
         self.mark = mark
@@ -47,7 +61,11 @@ class Activity:
 
 
 class Module:
-    def __init__(self, name: str, grade: int = None, credits: int = 10, certain: bool = True) -> None:
+    def __init__(self,
+                 name: str,
+                 grade: int = None,
+                 credits: int = 10,
+                 certain: bool = True) -> None:
         self.name = name
         self.grade = grade
         self.credits = credits
@@ -55,7 +73,8 @@ class Module:
         self.certain = certain
 
     def is_uncertain(self):
-        return not self.certain or any([not activity.certain for activity in self.activities])
+        return not self.certain or any(
+            [not activity.certain for activity in self.activities])
 
     def add_activity(self, activity: Activity):
         assert not self.grade, "Grade already given."
@@ -76,7 +95,9 @@ class Module:
         for activity in self.activities:
             achieved += activity.get_worth()
             potential += activity.pct
-        assert potential == 100, (f"{self.name} activities don't add up to 100, is {potential} instead.")
+        assert potential == 100, (
+            f"{self.name} activities don't add up to 100, is {potential} instead."
+        )
         return achieved
 
     def __repr__(self) -> str:
@@ -99,7 +120,8 @@ class Year:
         total_credits = achieved_credits = 0
         for module in self.modules:
             total_credits += module.get_credits()
-            achieved_credits += module.get_credits() * (module.get_grade() / 100)
+            achieved_credits += module.get_credits() * (module.get_grade() /
+                                                        100)
         return (achieved_credits / total_credits) * 100
 
     def get_total_credits(self):
@@ -113,7 +135,10 @@ class Year:
             if module:
                 print(f"{module.name:32}  |  {module.get_grade():.2f}")
 
-    def report(self, verbosity: Verbosity = Verbosity.PER_MODULE) -> None:
+    def report(self,
+               verbosity: Verbosity = Verbosity.PER_MODULE,
+               sort: SortType = None,
+               sort_direction: SortDIR = SortDIR.DESC) -> None:
         name_width = max([len(module.name) for module in self.modules])
 
         if verbosity.value >= Verbosity.PER_ACTIVITY.value:
@@ -127,8 +152,16 @@ class Year:
 
         total_credits = achieved_credits = 0
 
+        modules = self.modules
+
+        if sort is SortType.GRADE:
+            modules.sort(key=lambda m: m.get_grade())
+            if sort_direction is SortDIR.DESC:
+                modules.reverse()
+
         for module in self.modules:
-            module_credist, module_grade = module.get_credits(), module.get_grade()
+            module_credist, module_grade = module.get_credits(
+            ), module.get_grade()
             total_credits += module_credist
             achieved_credits += module_credist * (module_grade / 100)
             uncertain = module.is_uncertain()
@@ -139,9 +172,13 @@ class Year:
                 print("  |  ", end="")
 
                 if uncertain:
-                    printc(f"{module_grade:<{grade_witdth}.2f}", fore=Fore.YELLOW, end="")
+                    printc(f"{module_grade:<{grade_witdth}.2f}",
+                           fore=Fore.YELLOW,
+                           end="")
                 else:
-                    printc(f"{module_grade:<{grade_witdth}.2f}", fore=Fore.GREEN, end="")
+                    printc(f"{module_grade:<{grade_witdth}.2f}",
+                           fore=Fore.GREEN,
+                           end="")
 
                 print("")
 
@@ -151,16 +188,24 @@ class Year:
                             print(" └ ", end="")
                         else:
                             print(" ├ ", end="")
-                        printc(f"{activity.name:{name_width - 3}}", end="", fore=Fore.CYAN)
+                        printc(f"{activity.name:{name_width - 3}}",
+                               end="",
+                               fore=Fore.CYAN)
                         print("  |  ", end="")
                         if i == len(module.activities) - 1:
                             print(" └ ", end="")
                         else:
                             print(" ├ ", end="")
                         if activity.certain:
-                            printc(f"{activity.get_worth():<{grade_witdth - 3}.2f}", fore=Fore.GREEN, end="")
+                            printc(
+                                f"{activity.get_worth():<{grade_witdth - 3}.2f}",
+                                fore=Fore.GREEN,
+                                end="")
                         else:
-                            printc(f"{activity.get_worth():<{grade_witdth - 4}.2f}?", fore=Fore.YELLOW, end="")
+                            printc(
+                                f"{activity.get_worth():<{grade_witdth - 4}.2f}?",
+                                fore=Fore.YELLOW,
+                                end="")
                         print("")
 
         grade = (achieved_credits / total_credits) * 100
@@ -174,4 +219,5 @@ class Year:
         print("")
 
     def __str__(self):
-        return (f"Year {self.year_number}\n" + f"Total Credits {self.get_total_credits()}")
+        return (f"Year {self.year_number}\n" +
+                f"Total Credits {self.get_total_credits()}")
